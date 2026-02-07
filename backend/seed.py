@@ -5,19 +5,21 @@ from datetime import date, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import engine, async_session, Base
+from app.database import get_engine, get_session_factory, Base
 from app.models.fund import Fund, FundStrategy, FundStatus
 from app.models.company import Company, Sector, CompanyStatus
 from app.models.financial_metric import FinancialMetric, MetricType, MetricSource
 
 
 async def seed():
+    engine = get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    async with async_session() as db:
+    session_factory = get_session_factory()
+    async with session_factory() as db:
         # Fund 1: Growth Equity
-        fund1_id = uuid.uuid4()
+        fund1_id = str(uuid.uuid4())
         fund1 = Fund(
             id=fund1_id, name="Meridian Growth Partners III", vintage_year=2022,
             strategy=FundStrategy.growth_equity, aum=750_000_000, currency="USD",
@@ -25,7 +27,7 @@ async def seed():
         )
 
         # Fund 2: Buyout
-        fund2_id = uuid.uuid4()
+        fund2_id = str(uuid.uuid4())
         fund2 = Fund(
             id=fund2_id, name="Meridian Capital Buyout Fund V", vintage_year=2023,
             strategy=FundStrategy.buyout, aum=1_200_000_000, currency="USD",
@@ -47,7 +49,7 @@ async def seed():
 
         company_ids = []
         for fund_id, name, sector, geo, inv_date, cost, val, own in companies_data:
-            cid = uuid.uuid4()
+            cid = str(uuid.uuid4())
             company_ids.append(cid)
             db.add(Company(
                 id=cid, fund_id=fund_id, name=name, sector=sector, geography=geo,

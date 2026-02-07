@@ -9,12 +9,11 @@ class Base(DeclarativeBase):
 def _create_engine():
     from app.config import get_settings
     settings = get_settings()
-    return create_async_engine(
-        settings.database_url,
-        echo=settings.debug,
-        pool_size=20,
-        max_overflow=10,
-    )
+    kwargs = {"echo": settings.debug}
+    if "sqlite" not in settings.database_url:
+        kwargs["pool_size"] = 20
+        kwargs["max_overflow"] = 10
+    return create_async_engine(settings.database_url, **kwargs)
 
 
 _engine = None
